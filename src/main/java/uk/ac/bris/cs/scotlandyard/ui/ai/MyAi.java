@@ -13,7 +13,7 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 
 public class MyAi implements Ai {
 
-	@Nonnull @Override public String name() { return "Slug Kenneth"; }
+	@Nonnull @Override public String name() { return "Tronkus"; }
 
 	// returns move with the highest score
 	@Nonnull @Override public Move pickMove(
@@ -96,16 +96,37 @@ public class MyAi implements Ai {
 		if (losingMove(board, destination)) return 0;
 		return score;
 	}
+
+	//BELOW IS MY ATTEMPT AT DIJKSTRAS TO FIND DISTANCE OF DETECTIVES FROM MRX
+
+	/*
+    plan is
+    so for every possible move destination, have to use dijkstras to find the distance from the nearest detective
+    do this for each destination
+    then of each of the move options, pick the move that has the destination with the furthest distance from
+    the nearest detective.
+    ideally not near the edges
+
+    ohhhh im trying to think of ideas but i keep on wanting to implement it the
+    long way because it's easier to understand. My thought process is breaking.
+    because i was to do my own scoring method but that's not what dijkstra wants
+    me to do? I need such big brain juice im going to draw this out
+    but im cracking it slowly
+
+    dijkstras algorithm is for shortest length but i thought we are finding the longesy
+    one?
+
+	 */
+	 */
+
+	public Graph
+	public void dijkstra(Board board, Move move){
+		for (node)
+
+	}
 }
 
 
-//BELOW IS MY ATTEMPT AT DIJKSTRAS TO FIND DISTANCE OF DETECTIVES FROM MRX
 
-/*
-plan is
-so for every possible move destination, have to use dijkstras to find the distance from the nearest detective
-do this for each destination
-then of each of the move options, pick the move that has the destination with the furthest distance from
-the nearest detective.
-ideally not near the edges
- */
+
+
