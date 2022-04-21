@@ -97,3 +97,15 @@ public class MyAi implements Ai {
 		return score;
 	}
 }
+
+
+//BELOW IS MY ATTEMPT AT DIJKSTRAS TO FIND DISTANCE OF DETECTIVES FROM MRX
+
+/*
+plan is
+so for every possible move destination, have to use dijkstras to find the distance from the nearest detective
+do this for each destination
+then of each of the move options, pick the move that has the destination with the furthest distance from
+the nearest detective.
+ideally not near the edges
+ */
