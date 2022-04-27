@@ -1,5 +1,7 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -13,10 +15,16 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 
 public class MyAi implements Ai {
 
-	@Nonnull @Override public String name() { return "Tronkus"; }
+	@Nonnull
+	@Override
+	public String name() {
+		return "Tronkus";
+	}
 
 	// returns move with the highest score
-	@Nonnull @Override public Move pickMove(
+	@Nonnull
+	@Override
+	public Move pickMove(
 			@Nonnull Board board,
 			Pair<Long, TimeUnit> timeoutPair) {
 		ImmutableSet<Move> moves = board.getAvailableMoves();
@@ -81,7 +89,7 @@ public class MyAi implements Ai {
 	private boolean losingMove(Board board, int destination) {
 		for (int node : board.getSetup().graph.adjacentNodes(destination)) {
 			boolean adjacentDetective = getDetectiveLocations(board).stream().anyMatch(detectiveLocation ->
-																					   detectiveLocation.get().equals(node));
+					detectiveLocation.get().equals(node));
 			if (adjacentDetective) return true;
 		}
 		return false;
@@ -89,44 +97,168 @@ public class MyAi implements Ai {
 
 	// returns the score of a move based on the current board
 	public int score(Move move, Board board) {
-		assert(move.commencedBy() == Piece.MrX.MRX);
+		assert (move.commencedBy() == Piece.MrX.MRX);
 		int destination = move.accept(new Move.FunctionalVisitor<>((singleMove -> singleMove.destination),
-																	doubleMove -> doubleMove.destination2));
+				doubleMove -> doubleMove.destination2));
 		int score = scoreDistanceDetectives(board, destination);
 		if (losingMove(board, destination)) return 0;
 		return score;
 	}
 
-	//BELOW IS MY ATTEMPT AT DIJKSTRAS TO FIND DISTANCE OF DETECTIVES FROM MRX
-
-	/*
-    plan is
-    so for every possible move destination, have to use dijkstras to find the distance from the nearest detective
-    do this for each destination
-    then of each of the move options, pick the move that has the destination with the furthest distance from
-    the nearest detective.
-    ideally not near the edges
-
-    ohhhh im trying to think of ideas but i keep on wanting to implement it the
-    long way because it's easier to understand. My thought process is breaking.
-    because i was to do my own scoring method but that's not what dijkstra wants
-    me to do? I need such big brain juice im going to draw this out
-    but im cracking it slowly
-
-    dijkstras algorithm is for shortest length but i thought we are finding the longesy
-    one?
-
-	 */
-	 */
-
-	public Graph
-	public void dijkstra(Board board, Move move){
-		for (node)
+	private static int evaluate() {
+		int childEval = scoreDistanceDetectives(Board board, int destination);
+		int ParentEVal = ;
+		int evaluation = ChildEval - ParentEval;
 
 	}
+
+	private int search(int depth, Board board, int alpha, int beta){
+		ImmutableSet<Move> moves = board.getAvailableMoves();
+		if (depth == 0){
+			return evaluate();
+		}
+		for (Move move: moves){
+			//use simulated gamestate (overriden advance move)
+			int evaluation = -Search(depth -1);
+			bestEvaluation = Max (evaluation, bestEvaluation);
+		//search the new game state depth -1;
+			// make gamestate == original
+		}
+	}
+
+
+	/*class Node<T> {
+		T data;
+		Node<T> parent;
+		List<Node<T>> branches;
+		int score;
+
+		public Node(T data) {
+			this.data = data;
+			this.branches = new ArrayList<>();
+			this.score = score;
+		}
+
+		public List<Node<T>> getBranches(){
+			return branches;
+		}
+		public int getScore(){
+			return score;
+		}
+		public T getData(){
+			return data;
+		}
+		public void setData(T data){
+			this.data = data;
+		}
+
+		public void setParent(Node<T> parent){
+			this.parent = parent;
+		}
+		public Node<T> getParent(){
+			return parent;
+		}
+
+		public Node<T> addBranch(Node<T> branch){
+			branch.setParent(this);
+			this.branches.add(branch);
+			return branch;
+		}
+
+		public void addBranches(List<Node<T>> branches){
+			branches.forEach(each -> each.setParent(this));
+			this.branches.addAll(branches);
+		}
+	}
+
+	public class MiniMax{
+		public void NewTree(Board board, Node node){
+			Node root = new Node(board);
+			constructTree(board, root);
+		}
+		public void constructTree(Board board, Node node){
+			ImmutableSet<Move> moves = board.getAvailableMoves();
+			for(Move move:moves){
+				advance(move);
+				node.addBranch(move);
+
+			}
+		}
+
+		public void constructTree(Node parentNode, Board board, Player player){
+			boolean
+
+		}
+	}
+
+	/*public class Node<gameState>{
+		int distanceScore;
+		boolean isMaxPlayer;
+		int score;
+		List<Node> branches;
+
+		private Node(boolean isMaxPlayer, int distanceScore) {
+			this.distanceScore = distanceScore;
+			this.isMaxPlayer = isMaxPlayer;
+			this.branches= List.of();
+		}
+		private Node(int score, boolean isMaxPlayer, int distanceScore) {
+			this.distanceScore = distanceScore;
+			this.score = score;
+			this.isMaxPlayer = isMaxPlayer;
+			this.branches= List.of();
+		}
+
+		public int getScore(){
+			return score;
+		}
+		public boolean getIsMaxPlayer(){
+			return isMaxPlayer;
+		}
+		public List<Node> getChildren(){
+			return branches;
+		}
+		public int GetDistanceScore(){
+			return distanceScore;
+		}
+		public void setScore(int a){
+			score= a;
+		}
+		public void setIsMaxPlayer(boolean a){
+			this.isMaxPlayer= a;
+		}
+		public void setChildren(List<Node> a){
+			children = a;
+		}
+	}
+
+	public class Tree {
+		Node root;
+
+		public Node getRoot(){
+			return root;
+		}
+		public void setRoot(Node node){
+			this.root = node;
+		}
+	}
+
+	public class MiniMax{
+		Tree tree;
+
+		public void constructTree(int noOfMoves, Board board){
+			tree = new Tree();
+			Node root = new Node(true, noOfMoves);
+			tree.setRoot(root);
+			constructTree(root, board);
+		}
+
+		public void constructTree(Node parentNode, Board board, Player player){
+			boolean
+
+		}
+	}
+*/
+
 }
-
-
-
-
 
