@@ -129,38 +129,6 @@ public class MyAi implements Ai {
 		}
 	}
 
-
-	/*class Node<T> {
-		T data;
-		Node<T> parent;
-		List<Node<T>> branches;
-		int score;
-
-		public Node(T data) {
-			this.data = data;
-			this.branches = new ArrayList<>();
-			this.score = score;
-		}
-
-		public List<Node<T>> getBranches(){
-			return branches;
-		}
-		public int getScore(){
-			return score;
-		}
-		public T getData(){
-			return data;
-		}
-		public void setData(T data){
-			this.data = data;
-		}
-
-		public void setParent(Node<T> parent){
-			this.parent = parent;
-		}
-		public Node<T> getParent(){
-			return parent;
-		}
 	public class Minimax {
 		Tree tree;
 
@@ -246,8 +214,40 @@ public class MyAi implements Ai {
 
 		// filter detectives moves
 	}
+
+	/*class Node<T> {
+		T data;
+		Node<T> parent;
+		List<Node<T>> branches;
+		int score;
+
+		public Node(T data) {
+			this.data = data;
+			this.branches = new ArrayList<>();
+			this.score = score;
+		}
+
+		public List<Node<T>> getBranches(){
+			return branches;
+		}
+		public int getScore(){
+			return score;
+		}
+		public T getData(){
+			return data;
+		}
+		public void setData(T data){
+			this.data = data;
+		}
+
+		public void setParent(Node<T> parent){
+			this.parent = parent;
+		}
+		public Node<T> getParent(){
+			return parent;
+		}
+
 }
-	//BELOW IS MY ATTEMPT AT DIJKSTRAS TO FIND DISTANCE OF DETECTIVES FROM MRX
 
 		public Node<T> addBranch(Node<T> branch){
 			branch.setParent(this);
@@ -272,8 +272,6 @@ public class MyAi implements Ai {
 				advance(move);
 				node.addBranch(move);
 
-	 */
-	 */
 
 	public Graph
 	public void dijkstra(Board board, Move move){
@@ -281,7 +279,7 @@ public class MyAi implements Ai {
 
 	}
 }
-
+*/
 
 
 
