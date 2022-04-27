@@ -10,6 +10,8 @@ import javax.annotation.Nonnull;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.graph.ImmutableValueGraph;
+import com.sun.source.tree.Tree;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
@@ -18,7 +20,7 @@ public class MyAi implements Ai {
 	@Nonnull
 	@Override
 	public String name() {
-		return "Tronkus";
+		return "Tronkus Nullch";
 	}
 
 	// returns move with the highest score
@@ -36,7 +38,8 @@ public class MyAi implements Ai {
 	private ImmutableMap<Move, Integer> getMap(ImmutableSet<Move> moves, Board board) {
 		ImmutableMap.Builder<Move, Integer> mapBuilder = ImmutableMap.builder();
 		for (Move move : moves) {
-			mapBuilder.put(move, score(move, board));
+			int score = score(move, board);
+			mapBuilder.put(move, score);
 		}
 		return mapBuilder.build();
 	}
@@ -158,6 +161,93 @@ public class MyAi implements Ai {
 		public Node<T> getParent(){
 			return parent;
 		}
+	public class Minimax {
+		Tree tree;
+
+		private class Node {
+			private int score;
+			private boolean isMaxPlayer;
+			private List<Node> children;
+
+			private Node(int score, boolean isMaxPlayer) {
+				this.score = score;
+				this.isMaxPlayer = isMaxPlayer;
+				this.children = List.of();
+			};
+
+			public void setScore(int score) {
+				this.score = score;
+			}
+
+			public int getScore() {
+				return this.score;
+			}
+
+			public boolean getIsMaxPlayer() {
+				return isMaxPlayer;
+			}
+
+			public void addChildren(Node child) {
+				List newChildren = new ArrayList<>(children);
+				newChildren.add(child);
+				children = newChildren;
+			}
+
+			public List<Node> getChildren() {
+				return this.children;
+			}
+		}
+
+		public class Tree {
+			private Node root;
+
+			private Tree() {};
+
+			public void setRoot(Node root) {
+				this.root = root;
+			}
+
+			public Node getRoot() {
+				return this.root;
+			}
+
+			public List showChildren() {
+				return this.root.getChildren();
+			}
+		}
+
+		public Tree constructTree(int score, int depth, boolean isMrXsTurn, Board board) {
+			tree = new Tree();
+			Node root = new Node(score, true);
+			tree.setRoot(root);
+			return constructTree(root, depth, true, board);
+		}
+
+		public Tree constructTree(Node parentNode, int depth, boolean isMrXsTurn, Board board) {
+			// if isMrXsTurn iterate mrXmoves
+			// if !isMrXsTurn iterate detective moves colour by colour
+			Board.GameState gameState = (Board.GameState) board;
+			if (isMrXsTurn) {
+				for (Move move : gameState.getAvailableMoves()) {
+					Node newNode = new Node(score(move, gameState), true);
+					parentNode.addChildren(newNode);
+					if (depth > 0) {
+						gameState = gameState.advance(move);
+						isMrXsTurn = !move.commencedBy().equals(Piece.MrX.MRX); //
+						constructTree(newNode, depth - 1, isMrXsTurn, board);
+					}
+				}
+			}
+			else {
+				//iterate detective moves colour by colour
+			}
+			return tree;
+		}
+
+		// filter detectives moves
+	}
+}
+	//BELOW IS MY ATTEMPT AT DIJKSTRAS TO FIND DISTANCE OF DETECTIVES FROM MRX
 
 		public Node<T> addBranch(Node<T> branch){
 			branch.setParent(this);
@@ -182,83 +272,17 @@ public class MyAi implements Ai {
 				advance(move);
 				node.addBranch(move);
 
-			}
-		}
+	 */
+	 */
 
-		public void constructTree(Node parentNode, Board board, Player player){
-			boolean
+	public Graph
+	public void dijkstra(Board board, Move move){
+		for (node)
 
-		}
 	}
-
-	/*public class Node<gameState>{
-		int distanceScore;
-		boolean isMaxPlayer;
-		int score;
-		List<Node> branches;
-
-		private Node(boolean isMaxPlayer, int distanceScore) {
-			this.distanceScore = distanceScore;
-			this.isMaxPlayer = isMaxPlayer;
-			this.branches= List.of();
-		}
-		private Node(int score, boolean isMaxPlayer, int distanceScore) {
-			this.distanceScore = distanceScore;
-			this.score = score;
-			this.isMaxPlayer = isMaxPlayer;
-			this.branches= List.of();
-		}
-
-		public int getScore(){
-			return score;
-		}
-		public boolean getIsMaxPlayer(){
-			return isMaxPlayer;
-		}
-		public List<Node> getChildren(){
-			return branches;
-		}
-		public int GetDistanceScore(){
-			return distanceScore;
-		}
-		public void setScore(int a){
-			score= a;
-		}
-		public void setIsMaxPlayer(boolean a){
-			this.isMaxPlayer= a;
-		}
-		public void setChildren(List<Node> a){
-			children = a;
-		}
-	}
-
-	public class Tree {
-		Node root;
-
-		public Node getRoot(){
-			return root;
-		}
-		public void setRoot(Node node){
-			this.root = node;
-		}
-	}
-
-	public class MiniMax{
-		Tree tree;
-
-		public void constructTree(int noOfMoves, Board board){
-			tree = new Tree();
-			Node root = new Node(true, noOfMoves);
-			tree.setRoot(root);
-			constructTree(root, board);
-		}
-
-		public void constructTree(Node parentNode, Board board, Player player){
-			boolean
-
-		}
-	}
-*/
-
 }
+
+
+
+
 
