@@ -1,5 +1,7 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -8,15 +10,23 @@ import javax.annotation.Nonnull;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.graph.ImmutableValueGraph;
+import com.sun.source.tree.Tree;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
 public class MyAi implements Ai {
 
-	@Nonnull @Override public String name() { return "Tronkus"; }
+	@Nonnull
+	@Override
+	public String name() {
+		return "Tronkus Nullch";
+	}
 
 	// returns move with the highest score
-	@Nonnull @Override public Move pickMove(
+	@Nonnull
+	@Override
+	public Move pickMove(
 			@Nonnull Board board,
 			Pair<Long, TimeUnit> timeoutPair) {
 		ImmutableSet<Move> moves = board.getAvailableMoves();
@@ -28,7 +38,8 @@ public class MyAi implements Ai {
 	private ImmutableMap<Move, Integer> getMap(ImmutableSet<Move> moves, Board board) {
 		ImmutableMap.Builder<Move, Integer> mapBuilder = ImmutableMap.builder();
 		for (Move move : moves) {
-			mapBuilder.put(move, score(move, board));
+			int score = score(move, board);
+			mapBuilder.put(move, score);
 		}
 		return mapBuilder.build();
 	}
@@ -81,22 +92,109 @@ public class MyAi implements Ai {
 	private boolean losingMove(Board board, int destination) {
 		for (int node : board.getSetup().graph.adjacentNodes(destination)) {
 			boolean adjacentDetective = getDetectiveLocations(board).stream().anyMatch(detectiveLocation ->
-																					   detectiveLocation.get().equals(node));
+					detectiveLocation.get().equals(node));
 			if (adjacentDetective) return true;
 		}
 		return false;
 	}
 
+
 	// returns the score of a move based on the current board
 	public int score(Move move, Board board) {
-		assert(move.commencedBy() == Piece.MrX.MRX);
+		assert (move.commencedBy() == Piece.MrX.MRX);
 		int destination = move.accept(new Move.FunctionalVisitor<>((singleMove -> singleMove.destination),
-																	doubleMove -> doubleMove.destination2));
+				doubleMove -> doubleMove.destination2));
 		int score = scoreDistanceDetectives(board, destination);
 		if (losingMove(board, destination)) return 0;
 		return score;
 	}
 
+	public class Minimax {
+		Tree tree;
+
+		private class Node {
+			private int score;
+			private boolean isMaxPlayer;
+			private List<Node> children;
+
+			private Node(int score, boolean isMaxPlayer) {
+				this.score = score;
+				this.isMaxPlayer = isMaxPlayer;
+				this.children = List.of();
+			};
+
+			public void setScore(int score) {
+				this.score = score;
+			}
+
+			public int getScore() {
+				return this.score;
+			}
+
+			public boolean getIsMaxPlayer() {
+				return isMaxPlayer;
+			}
+
+			public void addChildren(Node child) {
+				List newChildren = new ArrayList<>(children);
+				newChildren.add(child);
+				children = newChildren;
+			}
+
+			public List<Node> getChildren() {
+				return this.children;
+			}
+		}
+
+		public class Tree {
+			private Node root;
+
+			private Tree() {};
+
+			public void setRoot(Node root) {
+				this.root = root;
+			}
+
+			public Node getRoot() {
+				return this.root;
+			}
+
+			public List showChildren() {
+				return this.root.getChildren();
+			}
+		}
+
+		public Tree constructTree(int score, int depth, boolean isMrXsTurn, Board board) {
+			tree = new Tree();
+			Node root = new Node(score, true);
+			tree.setRoot(root);
+			return constructTree(root, depth, true, board);
+		}
+
+		public Tree constructTree(Node parentNode, int depth, boolean isMrXsTurn, Board board) {
+			// if isMrXsTurn iterate mrXmoves
+			// if !isMrXsTurn iterate detective moves colour by colour
+			Board.GameState gameState = (Board.GameState) board;
+			if (isMrXsTurn) {
+				for (Move move : gameState.getAvailableMoves()) {
+					Node newNode = new Node(score(move, gameState), true);
+					parentNode.addChildren(newNode);
+					if (depth > 0) {
+						gameState = gameState.advance(move);
+						isMrXsTurn = !move.commencedBy().equals(Piece.MrX.MRX); //
+						constructTree(newNode, depth - 1, isMrXsTurn, board);
+					}
+				}
+			}
+			else {
+				//iterate detective moves colour by colour
+			}
+			return tree;
+		}
+
+		// filter detectives moves
+	}
+}
 	//BELOW IS MY ATTEMPT AT DIJKSTRAS TO FIND DISTANCE OF DETECTIVES FROM MRX
 
 	/*
@@ -116,16 +214,17 @@ public class MyAi implements Ai {
     dijkstras algorithm is for shortest length but i thought we are finding the longesy
     one?
 
-	 */
+	cast board to gamestate advance for minimax
 	 */
 
+/*
 	public Graph
 	public void dijkstra(Board board, Move move){
 		for (node)
 
 	}
 }
-
+*/
 
 
 
