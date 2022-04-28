@@ -31,6 +31,7 @@ public class MyAi implements Ai {
 			Pair<Long, TimeUnit> timeoutPair) {
 		ImmutableSet<Move> moves = board.getAvailableMoves();
 		ImmutableMap<Move, Integer> movesMap = getMap(moves, board);
+		new Minimax().minimax(board).showChildren();
 		return getMaxEntry(movesMap).getKey();
 	}
 
@@ -52,7 +53,7 @@ public class MyAi implements Ai {
 				maxEntry = entry;
 			}
 		}
-		System.out.println(maxEntry.getValue());
+		//System.out.println(maxEntry.getValue());
 		return maxEntry;
 	}
 
@@ -65,6 +66,16 @@ public class MyAi implements Ai {
 			}
 		}
 		return detectivesLocationsBuilder.build();
+	}
+
+	private ImmutableSet<Piece> getDetectives(Board board) {
+		ImmutableSet.Builder<Piece> detectivesBuilder = ImmutableSet.builder();
+		for (Piece piece : board.getPlayers()) {
+			if (piece.isDetective()) {
+				detectivesBuilder.add(piece);
+			}
+		}
+		return detectivesBuilder.build();
 	}
 
 	// returns distance between two nodes
@@ -108,47 +119,56 @@ public class MyAi implements Ai {
 		return score;
 	}
 
-	private static int evaluate() {
-		int childEval = scoreDistanceDetectives(Board board, int destination);
-		int ParentEVal = ;
-		int evaluation = ChildEval - ParentEval;
+	/*	private static int evaluate() {
+			int childEval = scoreDistanceDetectives(Board board, int destination);
+			int ParentEVal = ;
+			int evaluation = ChildEval - ParentEval;
 
-	}
+		}
 
-	private int search(int depth, Board board, int alpha, int beta){
-		ImmutableSet<Move> moves = board.getAvailableMoves();
-		if (depth == 0){
-			return evaluate();
+		private int search(int depth, Board board, int alpha, int beta){
+			ImmutableSet<Move> moves = board.getAvailableMoves();
+			if (depth == 0){
+				return evaluate();
+			}
+			for (Move move: moves){
+				//use simulated gamestate (overriden advance move)
+				int evaluation = -Search(depth -1);
+				bestEvaluation = Max (evaluation, bestEvaluation);
+			//search the new game state depth -1;
+				// make gamestate == original
+			}
 		}
-		for (Move move: moves){
-			//use simulated gamestate (overriden advance move)
-			int evaluation = -Search(depth -1);
-			bestEvaluation = Max (evaluation, bestEvaluation);
-		//search the new game state depth -1;
-			// make gamestate == original
-		}
-	}
+	*/
 
 	public class Minimax {
 		Tree tree;
 
 		private class Node {
+			private Move move;
 			private int score;
+			private Board.GameState gameState;
 			private boolean isMaxPlayer;
 			private List<Node> children;
 
-			private Node(int score, boolean isMaxPlayer) {
+			private Node(Move move, int score, Board.GameState gameState, boolean isMaxPlayer) {
+				this.move = move;
 				this.score = score;
+				this.gameState = gameState;
 				this.isMaxPlayer = isMaxPlayer;
 				this.children = List.of();
-			};
+			}
 
-			public void setScore(int score) {
-				this.score = score;
+			public Move getMove() {
+				return this.move;
 			}
 
 			public int getScore() {
 				return this.score;
+			}
+
+			public Board.GameState gameState() {
+				return this.gameState;
 			}
 
 			public boolean getIsMaxPlayer() {
@@ -166,7 +186,7 @@ public class MyAi implements Ai {
 			}
 		}
 
-		public class Tree {
+		private class Tree {
 			private Node root;
 
 			private Tree() {};
@@ -184,36 +204,43 @@ public class MyAi implements Ai {
 			}
 		}
 
-		public Tree constructTree(int score, int depth, boolean isMrXsTurn, Board board) {
+		private void constructTree(int score, int depth, Board board) {
 			tree = new Tree();
-			Node root = new Node(score, true);
+			Node root = new Node(null, 0, (Board.GameState) board, true);
 			tree.setRoot(root);
-			return constructTree(root, depth, true, board);
+			constructTree(root, depth, (Board.GameState) board);
 		}
 
-		public Tree constructTree(Node parentNode, int depth, boolean isMrXsTurn, Board board) {
-			// if isMrXsTurn iterate mrXmoves
-			// if !isMrXsTurn iterate detective moves colour by colour
-			Board.GameState gameState = (Board.GameState) board;
-			if (isMrXsTurn) {
+		private void constructTree(Node parentNode, int depth, Board.GameState gameState) {
+			System.out.println("moves:" + gameState.getAvailableMoves().size());
+			System.out.println(gameState.getAvailableMoves());
+			System.out.println(depth);
+
+			if (depth == 0) {
+				int i = 0;
 				for (Move move : gameState.getAvailableMoves()) {
-					Node newNode = new Node(score(move, gameState), true);
+					System.out.println("zeros:" + i++);
+					Node newNode = new Node(move, score(move, gameState), gameState, true);
 					parentNode.addChildren(newNode);
-					if (depth > 0) {
-						gameState = gameState.advance(move);
-						isMrXsTurn = !move.commencedBy().equals(Piece.MrX.MRX); //
-						constructTree(newNode, depth - 1, isMrXsTurn, board);
-					}
 				}
+				System.out.println("end");
 			}
 			else {
-				//iterate detective moves colour by colour
+				for (Move move : gameState.getAvailableMoves()) {
+					Node newNode = new Node(move, score(move, gameState), gameState, true);
+					parentNode.addChildren(newNode);
+					Board.GameState newGameState = gameState.advance(move);
+					constructTree(newNode, depth - 1, newGameState);
+				}
 			}
-			return tree;
 		}
 
-		// filter detectives moves
+		public Tree minimax(Board board) {
+			constructTree(0, 6, board);
+			return tree;
+		}
 	}
+}
 
 	/*class Node<T> {
 		T data;
