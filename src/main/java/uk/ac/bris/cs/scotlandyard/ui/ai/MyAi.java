@@ -38,12 +38,8 @@ public class MyAi implements Ai {
 		Minimax m = new Minimax();
 		int depth = 2;
 		m.constructTree(0, depth, (Board.GameState) board);
-		Minimax.Node bestOutcome = m.minimax(m.tree.getRoot(), depth, true, board).left();
-		//m.findParent(m.tree.getRoot(), bestOutcome, m.new Node()).getMove();
-		//Move bestMove = m.findBestNode(m.tree.getRoot(), bestOutcome, m.new Node()).getMove();
-		//System.out.println("eval: " + bestMove);
-		return getMaxEntry(movesMap).getKey();
-		//return bestMove;
+		Move bestMove = m.findBestNode(m.tree.getRoot(), depth, true, board).move;
+		return bestMove;
 	}
 
 	// returns mapping from a move to its score
@@ -125,7 +121,7 @@ public class MyAi implements Ai {
 		int destination = move.accept(new Move.FunctionalVisitor<>((singleMove -> singleMove.destination),
 					doubleMove -> doubleMove.destination2));
 		int score = scoreDistanceDetectives(board, destination);
-		/* if (losingMove(board, destination)) {
+		/*if (losingMove(board, destination)) {
 			System.out.println("losingmove");
 			return 0;
 		} */
@@ -225,26 +221,6 @@ public class MyAi implements Ai {
 			}
 		}
 
-		/*public Node findBestNode(Node root, Node requiredNode, Node parent) {
-			Node bestNode = null;
-			for (int i = 0; i < 2; i++) {
-				bestNode = findParent(root, requiredNode, parent);
-			}
-			return bestNode;
-		} */
-
-		/*public Node findParent(Node root, Node requiredNode, Node parent) {
-			if (root.equals(requiredNode)) {
-				return parent;
-			}
-			else {
-				for (Node child : root.getChildren()) {
-					findParent(child, requiredNode, root);
-				}
-			}
-			return null;
-		}*/
-
 		public Node findBestNode(Node node, int depth, boolean isMaxPlayer, Board board) {
 			int bestData = minimax(node, depth, isMaxPlayer, board).right();
 			for (Node child : node.getChildren()) {
@@ -252,6 +228,7 @@ public class MyAi implements Ai {
 					return child;
 				}
 			}
+			return null;
 		}
 
 		public Pair<Node, Integer> minimax(Node node, int depth, boolean isMaxPlayer, Board board) {
