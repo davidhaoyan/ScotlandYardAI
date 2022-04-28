@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,9 @@ import com.google.common.graph.ImmutableValueGraph;
 import com.sun.source.tree.Tree;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.*;
+
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class MyAi implements Ai {
 
@@ -31,8 +35,15 @@ public class MyAi implements Ai {
 			Pair<Long, TimeUnit> timeoutPair) {
 		ImmutableSet<Move> moves = board.getAvailableMoves();
 		ImmutableMap<Move, Integer> movesMap = getMap(moves, board);
-		new Minimax().minimax(board,  1).showBranches();
+		Minimax m = new Minimax();
+		int depth = 2;
+		m.constructTree(0, depth, (Board.GameState) board);
+		Minimax.Node bestOutcome = m.minimax(m.tree.getRoot(), depth, true, board).left();
+		//m.findParent(m.tree.getRoot(), bestOutcome, m.new Node()).getMove();
+		//Move bestMove = m.findBestNode(m.tree.getRoot(), bestOutcome, m.new Node()).getMove();
+		//System.out.println("eval: " + bestMove);
 		return getMaxEntry(movesMap).getKey();
+		//return bestMove;
 	}
 
 	// returns mapping from a move to its score
@@ -124,14 +135,172 @@ public class MyAi implements Ai {
 
 	// returns the score of a move based on the current board
 	public int score(Move move, Board board) {
-		assert (move.commencedBy() == Piece.MrX.MRX);
 		int destination = move.accept(new Move.FunctionalVisitor<>((singleMove -> singleMove.destination),
-				doubleMove -> doubleMove.destination2));
+					doubleMove -> doubleMove.destination2));
 		int score = scoreDistanceDetectives(board, destination);
-		if (losingMove(board, destination)) return 0;
+		/* if (losingMove(board, destination)) {
+			System.out.println("losingmove");
+			return 0;
+		} */
 		return score;
 	}
 
+	public class Minimax {
+		Tree tree;
 
+		private class Node {
+			private Move move;
+			private int score;
+			private int data = 0;
+			private Board.GameState gameState;
+			private List<Node> children;
+
+			private Node(Move move, int score, Board.GameState gameState) {
+				this.move = move;
+				this.score = score;
+				this.gameState = gameState;
+				this.children = List.of();
+			}
+
+			public Node() {}
+
+			public Move getMove() {
+				return this.move;
+			}
+
+			public int getScore() {
+				return this.score;
+			}
+
+			public void setData(int data) { this.data = data;}
+
+			public Board.GameState gameState() {
+				return this.gameState;
+			}
+
+			public void addChildren(Node child) {
+				List newChildren = new ArrayList<>(children);
+				newChildren.add(child);
+				children = newChildren;
+			}
+
+			public List<Node> getChildren() {
+				return this.children;
+			}
+		}
+
+		private class Tree {
+			private Node root;
+
+			private Tree() {};
+
+			public void setRoot(Node root) {
+				this.root = root;
+			}
+
+			public Node getRoot() {
+				return this.root;
+			}
+
+			public List showChildren() {
+				return this.root.getChildren();
+			}
+		}
+
+		private void constructTree(int score, int depth, Board board) {
+			tree = new Tree();
+			Node root = new Node(null, score, (Board.GameState) board);
+			tree.setRoot(root);
+			constructTree(root, depth, (Board.GameState) board);
+		}
+
+		private void constructTree(Node parentNode, int depth, Board.GameState gameState) {
+			/* System.out.println("moves:" + gameState.getAvailableMoves().size());
+			System.out.println(gameState.getAvailableMoves());
+			System.out.println(depth); */
+
+			if (depth == 0) {
+				System.out.println("x\n");
+				for (Move move : gameState.getAvailableMoves()) {
+					Node newNode = new Node(move, score(move, gameState), gameState);
+					parentNode.addChildren(newNode);
+				}
+			}
+			else {
+				for (Move move : gameState.getAvailableMoves()) {
+					System.out.println("move:" + move);
+					Node newNode = new Node(move, score(move, gameState), gameState);
+					parentNode.addChildren(newNode);
+					System.out.println(newNode.getScore() + "\n");
+					Board.GameState newGameState = gameState.advance(move);
+					constructTree(newNode, depth - 1, newGameState);
+				}
+			}
+		}
+
+		/*public Node findBestNode(Node root, Node requiredNode, Node parent) {
+			Node bestNode = null;
+			for (int i = 0; i < 2; i++) {
+				bestNode = findParent(root, requiredNode, parent);
+			}
+			return bestNode;
+		} */
+
+		/*public Node findParent(Node root, Node requiredNode, Node parent) {
+			if (root.equals(requiredNode)) {
+				return parent;
+			}
+			else {
+				for (Node child : root.getChildren()) {
+					findParent(child, requiredNode, root);
+				}
+			}
+			return null;
+		}*/
+
+		public Node findBestNode(Node node, int depth, boolean isMaxPlayer, Board board) {
+			int bestData = minimax(node, depth, isMaxPlayer, board).right();
+			for (Node child : node.getChildren()) {
+				if (child.data == bestData) {
+					return child;
+				}
+			}
+		}
+
+		public Pair<Node, Integer> minimax(Node node, int depth, boolean isMaxPlayer, Board board) {
+			if (depth == 0 || !board.getWinner().isEmpty()) {
+				return Pair.pair(node, node.getScore());
+			}
+			if (isMaxPlayer) {
+				int maxEval = -100000;
+				Node maxNode = node;
+				for (Node child : node.getChildren()) {
+					Pair<Node, Integer> eval = minimax(child, depth - 1, false, board);
+					if (eval.right() > maxEval) {
+						maxEval = eval.right();
+						maxNode = eval.left();
+						child.data = eval.right();
+					}
+				}
+				return Pair.pair(maxNode, maxEval);
+			}
+			else {
+				int minEval = 100000;
+				Node minNode = node;
+				for (Node child : node.getChildren()) {
+					Pair<Node, Integer> eval = minimax(child, depth - 1, true, board);
+					if (eval.right() < minEval) {
+						minEval = eval.right();
+						minNode = eval.left();
+						child.data = eval.right();
+					}
+				}
+				return Pair.pair(minNode, minEval);
+			}
+		}
+	}
 }
+
+
+
 
