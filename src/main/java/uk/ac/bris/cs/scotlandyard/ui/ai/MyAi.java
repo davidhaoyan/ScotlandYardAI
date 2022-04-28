@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,9 @@ import com.google.common.graph.ImmutableValueGraph;
 import com.sun.source.tree.Tree;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.*;
+
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class MyAi implements Ai {
 
@@ -31,8 +35,15 @@ public class MyAi implements Ai {
 			Pair<Long, TimeUnit> timeoutPair) {
 		ImmutableSet<Move> moves = board.getAvailableMoves();
 		ImmutableMap<Move, Integer> movesMap = getMap(moves, board);
-		new Minimax().minimax(board).showChildren();
+		Minimax m = new Minimax();
+		int depth = 2;
+		m.constructTree(0, depth, (Board.GameState) board);
+		Minimax.Node bestOutcome = m.minimax(m.tree.getRoot(), depth, true, board).left();
+		//m.findParent(m.tree.getRoot(), bestOutcome, m.new Node()).getMove();
+		//Move bestMove = m.findBestNode(m.tree.getRoot(), bestOutcome, m.new Node()).getMove();
+		//System.out.println("eval: " + bestMove);
 		return getMaxEntry(movesMap).getKey();
+		//return bestMove;
 	}
 
 	// returns mapping from a move to its score
@@ -111,35 +122,15 @@ public class MyAi implements Ai {
 
 	// returns the score of a move based on the current board
 	public int score(Move move, Board board) {
-		assert (move.commencedBy() == Piece.MrX.MRX);
 		int destination = move.accept(new Move.FunctionalVisitor<>((singleMove -> singleMove.destination),
-				doubleMove -> doubleMove.destination2));
+					doubleMove -> doubleMove.destination2));
 		int score = scoreDistanceDetectives(board, destination);
-		if (losingMove(board, destination)) return 0;
+		/* if (losingMove(board, destination)) {
+			System.out.println("losingmove");
+			return 0;
+		} */
 		return score;
 	}
-
-	/*	private static int evaluate() {
-			int childEval = scoreDistanceDetectives(Board board, int destination);
-			int ParentEVal = ;
-			int evaluation = ChildEval - ParentEval;
-
-		}
-
-		private int search(int depth, Board board, int alpha, int beta){
-			ImmutableSet<Move> moves = board.getAvailableMoves();
-			if (depth == 0){
-				return evaluate();
-			}
-			for (Move move: moves){
-				//use simulated gamestate (overriden advance move)
-				int evaluation = -Search(depth -1);
-				bestEvaluation = Max (evaluation, bestEvaluation);
-			//search the new game state depth -1;
-				// make gamestate == original
-			}
-		}
-	*/
 
 	public class Minimax {
 		Tree tree;
@@ -147,17 +138,18 @@ public class MyAi implements Ai {
 		private class Node {
 			private Move move;
 			private int score;
+			private int data = 0;
 			private Board.GameState gameState;
-			private boolean isMaxPlayer;
 			private List<Node> children;
 
-			private Node(Move move, int score, Board.GameState gameState, boolean isMaxPlayer) {
+			private Node(Move move, int score, Board.GameState gameState) {
 				this.move = move;
 				this.score = score;
 				this.gameState = gameState;
-				this.isMaxPlayer = isMaxPlayer;
 				this.children = List.of();
 			}
+
+			public Node() {}
 
 			public Move getMove() {
 				return this.move;
@@ -167,12 +159,10 @@ public class MyAi implements Ai {
 				return this.score;
 			}
 
+			public void setData(int data) { this.data = data;}
+
 			public Board.GameState gameState() {
 				return this.gameState;
-			}
-
-			public boolean getIsMaxPlayer() {
-				return isMaxPlayer;
 			}
 
 			public void addChildren(Node child) {
@@ -206,107 +196,97 @@ public class MyAi implements Ai {
 
 		private void constructTree(int score, int depth, Board board) {
 			tree = new Tree();
-			Node root = new Node(null, 0, (Board.GameState) board, true);
+			Node root = new Node(null, score, (Board.GameState) board);
 			tree.setRoot(root);
 			constructTree(root, depth, (Board.GameState) board);
 		}
 
 		private void constructTree(Node parentNode, int depth, Board.GameState gameState) {
-			System.out.println("moves:" + gameState.getAvailableMoves().size());
+			/* System.out.println("moves:" + gameState.getAvailableMoves().size());
 			System.out.println(gameState.getAvailableMoves());
-			System.out.println(depth);
+			System.out.println(depth); */
 
 			if (depth == 0) {
-				int i = 0;
+				System.out.println("x\n");
 				for (Move move : gameState.getAvailableMoves()) {
-					System.out.println("zeros:" + i++);
-					Node newNode = new Node(move, score(move, gameState), gameState, true);
+					Node newNode = new Node(move, score(move, gameState), gameState);
 					parentNode.addChildren(newNode);
 				}
-				System.out.println("end");
 			}
 			else {
 				for (Move move : gameState.getAvailableMoves()) {
-					Node newNode = new Node(move, score(move, gameState), gameState, true);
+					System.out.println("move:" + move);
+					Node newNode = new Node(move, score(move, gameState), gameState);
 					parentNode.addChildren(newNode);
+					System.out.println(newNode.getScore() + "\n");
 					Board.GameState newGameState = gameState.advance(move);
 					constructTree(newNode, depth - 1, newGameState);
 				}
 			}
 		}
 
-		public Tree minimax(Board board) {
-			constructTree(0, 6, board);
-			return tree;
+		/*public Node findBestNode(Node root, Node requiredNode, Node parent) {
+			Node bestNode = null;
+			for (int i = 0; i < 2; i++) {
+				bestNode = findParent(root, requiredNode, parent);
+			}
+			return bestNode;
+		} */
+
+		/*public Node findParent(Node root, Node requiredNode, Node parent) {
+			if (root.equals(requiredNode)) {
+				return parent;
+			}
+			else {
+				for (Node child : root.getChildren()) {
+					findParent(child, requiredNode, root);
+				}
+			}
+			return null;
+		}*/
+
+		public Node findBestNode(Node node, int depth, boolean isMaxPlayer, Board board) {
+			int bestData = minimax(node, depth, isMaxPlayer, board).right();
+			for (Node child : node.getChildren()) {
+				if (child.data == bestData) {
+					return child;
+				}
+			}
+		}
+
+		public Pair<Node, Integer> minimax(Node node, int depth, boolean isMaxPlayer, Board board) {
+			if (depth == 0 || !board.getWinner().isEmpty()) {
+				return Pair.pair(node, node.getScore());
+			}
+			if (isMaxPlayer) {
+				int maxEval = -100000;
+				Node maxNode = node;
+				for (Node child : node.getChildren()) {
+					Pair<Node, Integer> eval = minimax(child, depth - 1, false, board);
+					if (eval.right() > maxEval) {
+						maxEval = eval.right();
+						maxNode = eval.left();
+						child.data = eval.right();
+					}
+				}
+				return Pair.pair(maxNode, maxEval);
+			}
+			else {
+				int minEval = 100000;
+				Node minNode = node;
+				for (Node child : node.getChildren()) {
+					Pair<Node, Integer> eval = minimax(child, depth - 1, true, board);
+					if (eval.right() < minEval) {
+						minEval = eval.right();
+						minNode = eval.left();
+						child.data = eval.right();
+					}
+				}
+				return Pair.pair(minNode, minEval);
+			}
 		}
 	}
 }
-
-	/*class Node<T> {
-		T data;
-		Node<T> parent;
-		List<Node<T>> branches;
-		int score;
-
-		public Node(T data) {
-			this.data = data;
-			this.branches = new ArrayList<>();
-			this.score = score;
-		}
-
-		public List<Node<T>> getBranches(){
-			return branches;
-		}
-		public int getScore(){
-			return score;
-		}
-		public T getData(){
-			return data;
-		}
-		public void setData(T data){
-			this.data = data;
-		}
-
-		public void setParent(Node<T> parent){
-			this.parent = parent;
-		}
-		public Node<T> getParent(){
-			return parent;
-		}
-
-}
-
-		public Node<T> addBranch(Node<T> branch){
-			branch.setParent(this);
-			this.branches.add(branch);
-			return branch;
-		}
-
-		public void addBranches(List<Node<T>> branches){
-			branches.forEach(each -> each.setParent(this));
-			this.branches.addAll(branches);
-		}
-	}
-
-	public class MiniMax{
-		public void NewTree(Board board, Node node){
-			Node root = new Node(board);
-			constructTree(board, root);
-		}
-		public void constructTree(Board board, Node node){
-			ImmutableSet<Move> moves = board.getAvailableMoves();
-			for(Move move:moves){
-				advance(move);
-				node.addBranch(move);
-
-
-	public Graph
-	public void dijkstra(Board board, Move move){
-		for (node)
-
-	}
-}
-*/
 
 
 
