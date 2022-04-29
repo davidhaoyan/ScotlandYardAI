@@ -24,7 +24,7 @@ public class MyAi implements Ai {
 	@Nonnull
 	@Override
 	public String name() {
-		return "Tronkus Nullch";
+		return "Kenneth";
 	}
 
 	// returns move with the highest score
@@ -64,6 +64,19 @@ public class MyAi implements Ai {
 		return maxEntry;
 	}
 
+	// returns entry in map with the second highest score
+	private Map.Entry<Move, Integer> getSecondMaxEntry(ImmutableMap<Move, Integer> map) {
+		Map.Entry<Move, Integer> secondMaxEntry = null;
+		for (Map.Entry<Move, Integer> entry : map.entrySet()) {
+			if (secondMaxEntry == null || entry.getValue().compareTo(getMaxEntry(map).getValue()) < 0) {
+				if (entry.getValue().compareTo(secondMaxEntry.getValue()) > 0)
+				secondMaxEntry = entry;
+			}
+		}
+		//System.out.println(maxEntry.getValue());
+		return secondMaxEntry;
+	}
+
 	// returns set of detective locations
 	private ImmutableSet<Optional<Integer>> getDetectiveLocations(Board board) {
 		ImmutableSet.Builder<Optional<Integer>> detectivesLocationsBuilder = ImmutableSet.builder();
@@ -85,18 +98,6 @@ public class MyAi implements Ai {
 		return detectivesBuilder.build();
 	}
 
-	/*
-	public ImmutableSet<Move> getDetectiveMove(Player detective, Board board, Board.GameState gameState) {
-		GameSetup setup = gameState.getSetup();
-		ImmutableSet<Piece> detectives = getDetectives(board);
-		ImmutableSet.Builder<Move> movesBuilder = ImmutableSet.builder();
-		for (Move.SingleMove singleMove : makeSingleMoves(setup, detectives, detective, detective.location())) {
-			movesBuilder.add(singleMove);
-		}
-		return movesBuilder.build();
-	}
-
-	 */
 
 	// returns distance between two nodes
 	private int getDistance(Board board, int start, int end) {
@@ -129,11 +130,24 @@ public class MyAi implements Ai {
 		return false;
 	}
 
+	private Move bestIfSameMove(Move move1, Move move2){
+		List< ScotlandYard.Ticket > ticketList1 =
+				move1.accept(new Move.FunctionalVisitor<>((singleMove -> List.of(singleMove.ticket)),
+								(doubleMove -> List.of(doubleMove.ticket1, doubleMove.ticket2));
+		List< ScotlandYard.Ticket > ticketList2 =
+				move2.accept(new Move.FunctionalVisitor<>((singleMove -> List.of(singleMove.ticket)),
+						(doubleMove -> List.of(doubleMove.ticket1, doubleMove.ticket2));
+		if (ticketList1.size() == 2 && ticketList2.size() == 1 ) return move2;
+		if (ticketList2.size() == 2 && ticketList1.size() == 1 ) return move1;
+		if (ticketList1.contains(ScotlandYard.Ticket.SECRET)) return move2;
+		if (ticketList2.contains(ScotlandYard.Ticket.SECRET)) return move1;
+	}
+
 	// returns the score of a move based on the current board
 	public int score(Move move, Board board) {
 		int destination = move.accept(new Move.FunctionalVisitor<>((singleMove -> singleMove.destination),
 					doubleMove -> doubleMove.destination2));
-		int score = scoreDistanceDetectives(board, destination);
+		int score = scoreDistanceDetectives(board, destination) /* + scoreAdjacentDetectives(board, destination)*/;
 		/*if (losingMove(board, destination)) {
 			System.out.println("losingmove");
 			return 0;
@@ -202,6 +216,8 @@ public class MyAi implements Ai {
 				return this.root.getChildren();
 			}
 		}
+
+		private void maxPlayer()
 
 		private void constructTree(int score, int depth, Board board) {
 			tree = new Tree();
