@@ -1,6 +1,5 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -11,9 +10,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.*;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 public class MyAi implements Ai {
 
@@ -52,11 +48,10 @@ public class MyAi implements Ai {
 				maxEntry = entry;
 			}
 		}
-		//System.out.println(maxEntry.getValue());
 		return maxEntry;
 	}
 
-	// returns entry in map with the second highest score
+	// returns entry in map with the second-highest score
 	private Map.Entry<Move, Integer> getSecondMaxEntry(ImmutableMap<Move, Integer> map) {
 		Map.Entry<Move, Integer> secondMaxEntry = null;
 		for (Map.Entry<Move, Integer> entry : map.entrySet()) {
@@ -65,7 +60,6 @@ public class MyAi implements Ai {
 				secondMaxEntry = entry;
 			}
 		}
-		//System.out.println(maxEntry.getValue());
 		return secondMaxEntry;
 	}
 
@@ -80,6 +74,7 @@ public class MyAi implements Ai {
 		return detectivesLocationsBuilder.build();
 	}
 
+	// returns set of detectives
 	private ImmutableSet<Piece> getDetectives(Board board) {
 		ImmutableSet.Builder<Piece> detectivesBuilder = ImmutableSet.builder();
 		for (Piece piece : board.getPlayers()) {
@@ -90,6 +85,7 @@ public class MyAi implements Ai {
 		return detectivesBuilder.build();
 	}
 
+	// returns mrX location
 	private int getMrXLocation(Board board) {
 		Board.GameState gameState = (Board.GameState) board;
 		int source = gameState.getAvailableMoves().asList().get(0).source();
@@ -128,6 +124,7 @@ public class MyAi implements Ai {
 		return false;
 	}
 
+	// for minimax: returns whether the detective wins on this move
 	private boolean winningMove(Board board, int destination) {
 		if (destination == getMrXLocation(board)) {
 			return true;
@@ -136,6 +133,7 @@ public class MyAi implements Ai {
 		}
 	}
 
+	// returns whether mrX returns to the same spot in one move
 	private boolean uselessMove(int destination, Move move) {
 		if (destination == move.source()) {
 			return true;
@@ -180,11 +178,13 @@ public class MyAi implements Ai {
 		return score;
 	}
 
+	// returns cumulative distance between mrX's destination and all detectives
 	public int scoreMrX(Board board, int destination) {
 		int score = scoreDistanceDetectives(board, destination);
 		return score;
 	}
 
+	// for minimax: returns cumulative distance from mrX and detectives
 	public int scoreDetective(Board board, int destination) {
 		int score = scoreDistanceDetectives(board, getMrXLocation(board));
 		return score;
@@ -248,10 +248,7 @@ public class MyAi implements Ai {
 		private class Tree {
 			private Node root;
 
-			private Tree() {
-			}
-
-			;
+			private Tree() {}
 
 			public void setRoot(Node root) {
 				this.root = root;
