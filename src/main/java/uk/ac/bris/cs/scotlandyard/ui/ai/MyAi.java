@@ -48,20 +48,7 @@ public class MyAi implements Ai {
 				maxEntry = entry;
 			}
 		}
-		//System.out.println(maxEntry.getValue());
 		return maxEntry;
-	}
-
-	// returns entry in map with the second-highest score
-	private Map.Entry<Move, Integer> getSecondMaxEntry(ImmutableMap<Move, Integer> map) {
-		Map.Entry<Move, Integer> secondMaxEntry = null;
-		for (Map.Entry<Move, Integer> entry : map.entrySet()) {
-			if (secondMaxEntry == null || entry.getValue().compareTo(getMaxEntry(map).getValue()) < 0) {
-				if (entry.getValue().compareTo(secondMaxEntry.getValue()) > 0)
-				secondMaxEntry = entry;
-			}
-		}
-		return secondMaxEntry;
 	}
 
 	// returns set of detective locations
