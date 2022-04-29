@@ -56,18 +56,19 @@ public class MyAi implements Ai {
 		return maxEntry;
 	}
 
+	/*
 	// returns entry in map with the second highest score
 	private Map.Entry<Move, Integer> getSecondMaxEntry(ImmutableMap<Move, Integer> map) {
 		Map.Entry<Move, Integer> secondMaxEntry = null;
 		for (Map.Entry<Move, Integer> entry : map.entrySet()) {
 			if (secondMaxEntry == null || entry.getValue().compareTo(getMaxEntry(map).getValue()) < 0) {
 				if (entry.getValue().compareTo(secondMaxEntry.getValue()) > 0)
-				secondMaxEntry = entry;
+					secondMaxEntry = entry;
 			}
 		}
-		//System.out.println(maxEntry.getValue());
+		//System.out.println(secondMaxEntry.getValue());
 		return secondMaxEntry;
-	}
+	}*/
 
 	// returns set of detective locations
 	private ImmutableSet<Optional<Integer>> getDetectiveLocations(Board board) {
@@ -144,7 +145,7 @@ public class MyAi implements Ai {
 		}
 	}
 
-	private Move bestIfSameMove(Move move1, Move move2){
+	/*private Move bestIfSameMove(Move move1, Move move2){
 		List< ScotlandYard.Ticket > ticketList1 =
 				move1.accept(new Move.FunctionalVisitor<>((singleMove -> List.of(singleMove.ticket)),
 								(doubleMove -> List.of(doubleMove.ticket1, doubleMove.ticket2))));
@@ -156,7 +157,7 @@ public class MyAi implements Ai {
 		if (ticketList1.contains(ScotlandYard.Ticket.SECRET)) return move2;
 		if (ticketList2.contains(ScotlandYard.Ticket.SECRET)) return move1;
 		return null;
-	}
+	}*/
 
 	// returns the score of a move based on the current board
 	public int score(Move move, Board board) {
