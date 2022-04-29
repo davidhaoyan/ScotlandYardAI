@@ -20,7 +20,7 @@ public class MyAi implements Ai {
 	@Nonnull
 	@Override
 	public String name() {
-		return "Tronkus Nullch";
+		return "Kenneth";
 	}
 
 	// returns move with the highest score
@@ -56,6 +56,19 @@ public class MyAi implements Ai {
 		return maxEntry;
 	}
 
+	// returns entry in map with the second highest score
+	private Map.Entry<Move, Integer> getSecondMaxEntry(ImmutableMap<Move, Integer> map) {
+		Map.Entry<Move, Integer> secondMaxEntry = null;
+		for (Map.Entry<Move, Integer> entry : map.entrySet()) {
+			if (secondMaxEntry == null || entry.getValue().compareTo(getMaxEntry(map).getValue()) < 0) {
+				if (entry.getValue().compareTo(secondMaxEntry.getValue()) > 0)
+				secondMaxEntry = entry;
+			}
+		}
+		//System.out.println(maxEntry.getValue());
+		return secondMaxEntry;
+	}
+
 	// returns set of detective locations
 	private ImmutableSet<Optional<Integer>> getDetectiveLocations(Board board) {
 		ImmutableSet.Builder<Optional<Integer>> detectivesLocationsBuilder = ImmutableSet.builder();
@@ -82,6 +95,7 @@ public class MyAi implements Ai {
 		int source = gameState.getAvailableMoves().asList().get(0).source();
 		return source;
 	}
+
 
 	// returns distance between two nodes
 	private int getDistance(Board board, int start, int end) {
@@ -128,6 +142,19 @@ public class MyAi implements Ai {
 		} else {
 			return false;
 		}
+	}
+
+	private Move bestIfSameMove(Move move1, Move move2){
+		List< ScotlandYard.Ticket > ticketList1 =
+				move1.accept(new Move.FunctionalVisitor<>((singleMove -> List.of(singleMove.ticket)),
+								(doubleMove -> List.of(doubleMove.ticket1, doubleMove.ticket2));
+		List< ScotlandYard.Ticket > ticketList2 =
+				move2.accept(new Move.FunctionalVisitor<>((singleMove -> List.of(singleMove.ticket)),
+						(doubleMove -> List.of(doubleMove.ticket1, doubleMove.ticket2));
+		if (ticketList1.size() == 2 && ticketList2.size() == 1 ) return move2;
+		if (ticketList2.size() == 2 && ticketList1.size() == 1 ) return move1;
+		if (ticketList1.contains(ScotlandYard.Ticket.SECRET)) return move2;
+		if (ticketList2.contains(ScotlandYard.Ticket.SECRET)) return move1;
 	}
 
 	// returns the score of a move based on the current board
@@ -295,3 +322,7 @@ public class MyAi implements Ai {
 		}
 	}
 }
+
+
+
+
