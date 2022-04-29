@@ -48,6 +48,7 @@ public class MyAi implements Ai {
 				maxEntry = entry;
 			}
 		}
+		//System.out.println(maxEntry.getValue());
 		return maxEntry;
 	}
 
